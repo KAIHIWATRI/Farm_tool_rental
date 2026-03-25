@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="form-card">
+    <h2>🌱 <span data-i18n="register.title">Create Account</span></h2>
+    <p style="text-align:center;color:#8a7060;font-size:.88rem;margin-bottom:1.75rem"
+       data-i18n="register.subtitle">
+      Join FarmRent and access hundreds of farm tools
+    </p>
+
+    <form method="POST" action="{{ url_for('register') }}">
+      <div class="form-group">
+        <label for="username" data-i18n="register.username">Username</label>
+        <input type="text" id="username" name="username"
+               data-i18n-ph="register.username_ph"
+               placeholder="Choose a username" required autofocus />
+      </div>
+      <div class="form-group">
+        <label for="email" data-i18n="register.email">Email Address</label>
+        <input type="email" id="email" name="email"
+               data-i18n-ph="register.email_ph"
+               placeholder="your@email.com" required />
+      </div>
+      <div class="form-group">
+        <label for="password" data-i18n="register.password">Password</label>
+        <input type="password" id="password" name="password"
+               data-i18n-ph="register.password_ph"
+               placeholder="Choose a strong password" required />
+        <p class="form-hint" data-i18n="register.hint">At least 6 characters recommended.</p>
+      </div>
+      <button type="submit" class="btn btn-primary"
+              style="width:100%;justify-content:center;padding:.75rem"
+              data-i18n="register.btn">Create Account →</button>
+    </form>
+
+    <div class="form-footer">
+      <span data-i18n="register.have_account">Already have an account?</span>
+      <a href="{{ url_for('login') }}" data-i18n="register.login"> Sign in here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

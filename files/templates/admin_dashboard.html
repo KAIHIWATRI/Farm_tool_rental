@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">🚜</div>
+      <div class="stat-value">{{ stats.total_tools }}</div>
+      <div class="stat-label" data-i18n="admin.total_tools">Total Tools</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-value">{{ stats.total_bookings }}</div>
+      <div class="stat-label" data-i18n="admin.all_bookings">All Bookings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-value">{{ stats.pending }}</div>
+      <div class="stat-label" data-i18n="admin.pending">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👤</div>
+      <div class="stat-value">{{ stats.total_users }}</div>
+      <div class="stat-label" data-i18n="admin.users">Registered Users</div>
+    </div>
+  </div>
+
+  <!-- Tools Section -->
+  <div class="page-header">
+    <h2><span data-i18n="admin.manage_equip">Manage Equipment</span></h2>
+    <a href="{{ url_for('add_tool') }}" class="btn btn-primary"
+       data-i18n="admin.add_tool">+ Add New Tool</a>
+  </div>
+
+  {% if tools %}
+    <div class="table-wrap" style="margin-bottom:3rem">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="admin.col_tool">Tool</th>
+            <th data-i18n="admin.col_price">Price/day</th>
+            <th data-i18n="admin.col_qty">Qty</th>
+            <th data-i18n="admin.col_status">Status</th>
+            <th data-i18n="admin.col_actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tool in tools %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:.75rem">
+                {% if tool['image'] %}
+                  <img src="{{ url_for('uploaded_file', filename=tool['image']) }}"
+                       style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid #e0d4be" />
+                {% else %}
+                  <span style="font-size:1.75rem">🚜</span>
+                {% endif %}
+                <div>
+                  <div class="tool-display-name" style="font-weight:600;color:var(--bark)"
+                       data-name-en="{{ tool['name'] }}"
+                       data-name-ta="{{ tool['name_ta'] or tool['name'] }}">
+                    {{ tool['name'] }}
+                  </div>
+                  <div style="font-size:.78rem;color:#8a7060">
+                    {{ (tool['description'] or '')[:50] }}{% if tool['description'] and tool['description']|length > 50 %}…{% endif %}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>₹{{ "%.2f"|format(tool['price']) }}</td>
+            <td>
+              {% if tool['quantity'] > 0 %}
+                <span class="qty-badge available">{{ tool['quantity'] }}</span>
+              {% else %}
+                <span class="qty-badge unavailable">0</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="tool-status {{ 'on' if tool['enabled'] else 'off' }}"></span>
+              <span data-i18n="{{ 'admin.enabled' if tool['enabled'] else 'admin.disabled' }}">
+                {{ 'Enabled' if tool['enabled'] else 'Disabled' }}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+                <a href="{{ url_for('edit_tool', tool_id=tool['id']) }}"
+                   class="btn btn-secondary btn-sm"
+                   data-i18n="admin.edit">✏️ Edit</a>
+                <form method="POST" action="{{ url_for('toggle_tool', tool_id=tool['id']) }}" style="display:inline">
+                  <button type="submit" class="btn btn-secondary btn-sm"
+                          data-i18n="{{ 'admin.disable' if tool['enabled'] else 'admin.enable' }}">
+                    {{ '🔴 Disable' if tool['enabled'] else '🟢 Enable' }}
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('delete_tool', tool_id=tool['id']) }}"
+                      style="display:inline"
+                      onsubmit="return confirm(window.TRANSLATIONS && window.TRANSLATIONS[localStorage.getItem('farmrent_lang')||'en']['admin.confirm_delete'] || 'Delete this tool?')">
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          data-i18n="admin.delete">🗑 Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state" style="margin-bottom:2rem">
+      <div class="empty-icon">🚜</div>
+      <p>
+        <span data-i18n="admin.no_tools">No tools yet.</span>
+        <a href="{{ url_for('add_tool') }}" style="color:var(--harvest)"
+           data-i18n="admin.add_one"> Add one now</a>.
+      </p>
+    </div>
+  {% endif %}
+
+  <!-- Bookings Section -->
+  <div class="section-title">📋 <span data-i18n="admin.all_bookings_h">All Bookings</span></div>
+
+  {% if bookings %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th data-i18n="admin.col_user">User</th>
+            <th data-i18n="admin.col_tool">Tool</th>
+            <th data-i18n="admin.col_date">Date & Time</th>
+            <th data-i18n="admin.col_contact">Contact</th>
+            <th data-i18n="admin.col_status">Status</th>
+            <th data-i18n="admin.col_actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td style="color:#8a7060">{{ b['id'] }}</td>
+            <td>{{ b['username'] }}</td>
+            <td>
+              <span class="tool-display-name"
+                    data-name-en="{{ b['tool_name'] }}"
+                    data-name-ta="{{ b['tool_name_ta'] or b['tool_name'] }}">
+                {{ b['tool_name'] }}
+              </span>
+            </td>
+            <td>
+              <div>{{ b['book_date'] }}</div>
+              <div style="font-size:.78rem;color:#8a7060">{{ b['book_time'] }}</div>
+            </td>
+            <td>
+              <div class="booking-detail">{{ b['phone'] }}</div>
+              <div class="booking-detail">{{ b['address'][:30] }}{% if b['address']|length > 30 %}…{% endif %}</div>
+            </td>
+            <td>
+              <span class="badge badge-{{ b['status'] }}"
+                    data-i18n="status.{{ b['status'] }}">{{ b['status'] }}</span>
+            </td>
+            <td>
+              {% if b['status'] in ('pending', 'queued') %}
+              <div style="display:flex;gap:.35rem">
+                <form method="POST" action="{{ url_for('approve_booking', booking_id=b['id']) }}">
+                  <button type="submit" class="btn btn-success btn-sm"
+                          data-i18n="admin.approve">✅ Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('reject_booking', booking_id=b['id']) }}">
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          data-i18n="admin.reject">❌ Reject</button>
+                </form>
+              </div>
+              {% else %}
+                <span style="font-size:.78rem;color:#8a7060">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <p data-i18n="admin.no_bookings">No bookings have been made yet.</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function applyToolTranslations() {
+    const lang = localStorage.getItem('farmrent_lang') || 'en';
+    document.querySelectorAll('[data-name-en]').forEach(el => {
+      el.textContent = lang === 'ta' ? el.dataset.nameTa : el.dataset.nameEn;
+    });
+  }
+  document.addEventListener('DOMContentLoaded', applyToolTranslations);
+  const _origToggle = window.toggleLanguage;
+  window.toggleLanguage = function() { _origToggle(); applyToolTranslations(); };
+</script>
+{% endblock %}

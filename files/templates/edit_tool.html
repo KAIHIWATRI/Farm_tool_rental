@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Tool' if tool else 'Add Tool' }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:620px">
+
+  <div style="margin-bottom:1.5rem">
+    <a href="{{ url_for('dashboard') }}" style="color:var(--harvest);font-size:.88rem;text-decoration:none"
+       data-i18n="tool.back">← Back to Dashboard</a>
+  </div>
+
+  <div class="form-card" style="max-width:100%">
+    <h2>
+      {% if tool %}
+        ✏️ <span data-i18n="tool.edit_title">Edit Tool</span>
+      {% else %}
+        ➕ <span data-i18n="tool.add_title">Add New Tool</span>
+      {% endif %}
+    </h2>
+
+    <form method="POST"
+          action="{{ url_for('edit_tool', tool_id=tool['id']) if tool else url_for('add_tool') }}"
+          enctype="multipart/form-data">
+
+      <!-- ── English Fields ── -->
+      <div style="background:var(--parchment);border-radius:8px;padding:1rem;margin-bottom:1rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--bark);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.06em">
+          🇬🇧 English
+        </div>
+        <div class="form-group" style="margin-bottom:.75rem">
+          <label for="name" data-i18n="tool.name">Tool Name *</label>
+          <input type="text" id="name" name="name"
+                 value="{{ tool['name'] if tool else '' }}"
+                 data-i18n-ph="tool.name_ph"
+                 placeholder="e.g. Tractor, Harvester, Cultivator" required />
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label for="description" data-i18n="tool.desc">Description</label>
+          <textarea id="description" name="description"
+                    data-i18n-ph="tool.desc_ph"
+                    placeholder="Describe the tool, its capacity, usage, etc.">{{ tool['description'] if tool else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- ── Tamil Fields ── -->
+      <div style="background:#f0ede8;border-radius:8px;padding:1rem;margin-bottom:1rem;border:1.5px solid rgba(200,132,58,.2)">
+        <div style="font-size:.8rem;font-weight:700;color:var(--bark);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.06em">
+          🇮🇳 தமிழ் (Tamil) — <span style="font-weight:400;font-size:.75rem">விருப்பமானது (Optional)</span>
+        </div>
+        <div class="form-group" style="margin-bottom:.75rem">
+          <label for="name_ta">கருவியின் பெயர் (Tool Name in Tamil)</label>
+          <input type="text" id="name_ta" name="name_ta"
+                 value="{{ tool['name_ta'] if tool and tool['name_ta'] else '' }}"
+                 placeholder="எ.கா. டிராக்டர், அறுவடை இயந்திரம்" />
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label for="description_ta">விளக்கம் (Description in Tamil)</label>
+          <textarea id="description_ta" name="description_ta"
+                    placeholder="கருவியை பற்றி தமிழில் விவரிக்கவும்…">{{ tool['description_ta'] if tool and tool['description_ta'] else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- ── Price & Qty ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label for="price" data-i18n="tool.price">Price per Day (₹) *</label>
+          <input type="number" id="price" name="price" step="0.01" min="0"
+                 value="{{ tool['price'] if tool else '' }}" placeholder="0.00" required />
+        </div>
+        <div class="form-group">
+          <label for="quantity" data-i18n="tool.qty">Available Quantity *</label>
+          <input type="number" id="quantity" name="quantity" min="0"
+                 value="{{ tool['quantity'] if tool else '' }}" placeholder="0" required />
+        </div>
+      </div>
+
+      <!-- ── Image ── -->
+      <div class="form-group">
+        <label data-i18n="tool.image">Tool Image</label>
+        <div class="file-input-wrap" onclick="document.getElementById('image').click()">
+          <input type="file" id="image" name="image"
+                 accept=".jpg,.jpeg,.png,.gif,.webp"
+                 onchange="previewImage(event)" />
+          <label class="file-input-label">
+            📷 <span data-i18n="tool.upload">Click to upload</span>
+            <span data-i18n="tool.upload_hint"> or drag an image here</span><br>
+            <span style="font-size:.75rem;font-weight:400" data-i18n="tool.file_types">JPG, PNG, GIF, WEBP accepted</span>
+          </label>
+        </div>
+        {% if tool and tool['image'] %}
+          <img id="img-preview"
+               src="{{ url_for('uploaded_file', filename=tool['image']) }}"
+               class="img-preview" style="display:block" />
+          <p class="form-hint" data-i18n="tool.current_img">
+            Current image shown. Upload a new one to replace it.
+          </p>
+        {% else %}
+          <img id="img-preview" class="img-preview" />
+        {% endif %}
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button type="submit" class="btn btn-primary"
+                style="flex:1;justify-content:center;padding:.75rem"
+                data-i18n="{{ 'tool.save' if tool else 'tool.add_btn' }}">
+          {{ '💾 Save Changes' if tool else '✅ Add Tool' }}
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
+           style="padding:.75rem 1.25rem" data-i18n="tool.cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function previewImage(event) {
+    const preview = document.getElementById('img-preview');
+    const file = event.target.files[0];
+    if (file) {
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

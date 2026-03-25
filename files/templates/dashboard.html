@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Browse Tools{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="hero-strip">
+    <h2><span data-i18n="dash.hello">Hello</span>, {{ session.username }} 👋</h2>
+    <p data-i18n="dash.hero_sub">Browse our available farm equipment and book the tools you need.</p>
+  </div>
+
+  <div class="page-header">
+    <h2><span data-i18n="dash.available">Available Equipment</span></h2>
+    <a href="{{ url_for('history') }}" class="btn btn-secondary"
+       data-i18n="dash.my_bookings">📋 My Bookings</a>
+  </div>
+
+  {% if tools %}
+    <div class="tools-grid">
+      {% for tool in tools %}
+        <div class="card">
+          <div class="card-img">
+            {% if tool['image'] %}
+              <img src="{{ url_for('uploaded_file', filename=tool['image']) }}" alt="{{ tool['name'] }}" />
+            {% else %}
+              🚜
+            {% endif %}
+          </div>
+          <div class="card-body">
+
+            <!-- Tool name: shows Tamil if available, else English. JS swaps via data attrs -->
+            <div class="card-title"
+                 data-name-en="{{ tool['name'] }}"
+                 data-name-ta="{{ tool['name_ta'] or tool['name'] }}">
+              {{ tool['name'] }}
+            </div>
+
+            <!-- Description -->
+            <div class="card-desc"
+                 data-desc-en="{{ tool['description'] or '' }}"
+                 data-desc-ta="{{ tool['description_ta'] or tool['description'] or '' }}">
+              {{ tool['description'] or '' }}
+              {% if not tool['description'] %}<span data-i18n="book.no_desc">No description provided.</span>{% endif %}
+            </div>
+
+            <div class="card-meta">
+              <span class="price">₹{{ "%.2f"|format(tool['price']) }}<span data-i18n="dash.per_day">/day</span></span>
+              {% if tool['quantity'] > 0 %}
+                <span class="qty-badge available">
+                  {{ tool['quantity'] }} <span data-i18n="dash.available_qty">available</span>
+                </span>
+              {% else %}
+                <span class="qty-badge unavailable" data-i18n="dash.out_of_stock">Out of stock</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-footer">
+            <a href="{{ url_for('book_tool', tool_id=tool['id']) }}" class="btn btn-primary btn-sm"
+               data-i18n="dash.book_now">📅 Book Now</a>
+            {% if tool['quantity'] == 0 %}
+              <span style="font-size:.75rem;color:#8a6200;align-self:center"
+                    data-i18n="dash.join_queue">⏳ Join Queue</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🌾</div>
+      <p data-i18n="dash.no_tools">No equipment available right now. Check back soon!</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+// Swap tool name/description based on active language
+function applyToolTranslations() {
+  const lang = localStorage.getItem('farmrent_lang') || 'en';
+  document.querySelectorAll('[data-name-en]').forEach(el => {
+    el.textContent = lang === 'ta' ? el.dataset.nameTa : el.dataset.nameEn;
+  });
+  document.querySelectorAll('[data-desc-en]').forEach(el => {
+    const text = lang === 'ta' ? el.dataset.descTa : el.dataset.descEn;
+    el.textContent = text || '';
+  });
+}
+document.addEventListener('DOMContentLoaded', applyToolTranslations);
+// Re-run when language is toggled
+const _origToggle = window.toggleLanguage;
+window.toggleLanguage = function() { _origToggle(); applyToolTranslations(); };
+</script>
+{% endblock %}

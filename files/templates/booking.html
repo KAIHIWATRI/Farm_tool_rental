@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Book – {{ tool['name'] }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:600px">
+
+  <div style="margin-bottom:1.5rem">
+    <a href="{{ url_for('dashboard') }}" style="color:var(--harvest);font-size:.88rem;text-decoration:none"
+       data-i18n="book.back">← Back to Browse</a>
+  </div>
+
+  <!-- Tool Preview -->
+  <div class="card" style="margin-bottom:1.5rem;cursor:default">
+    {% if tool['image'] %}
+      <div class="card-img">
+        <img src="{{ url_for('uploaded_file', filename=tool['image']) }}" alt="{{ tool['name'] }}" />
+      </div>
+    {% endif %}
+    <div class="card-body">
+      <div class="card-title" style="font-size:1.3rem"
+           data-name-en="{{ tool['name'] }}"
+           data-name-ta="{{ tool['name_ta'] or tool['name'] }}">
+        {{ tool['name'] }}
+      </div>
+      <div class="card-desc"
+           data-desc-en="{{ tool['description'] or '' }}"
+           data-desc-ta="{{ tool['description_ta'] or tool['description'] or '' }}">
+        {% if tool['description'] %}{{ tool['description'] }}{% else %}
+          <span data-i18n="book.no_desc">No description available.</span>
+        {% endif %}
+      </div>
+      <div class="card-meta">
+        <span class="price">₹{{ "%.2f"|format(tool['price']) }}<span data-i18n="dash.per_day">/day</span></span>
+        {% if tool['quantity'] > 0 %}
+          <span class="qty-badge available">
+            {{ tool['quantity'] }} <span data-i18n="book.in_stock">in stock</span>
+          </span>
+        {% else %}
+          <span class="qty-badge unavailable" data-i18n="book.out_of_stock">Out of stock – will be queued</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Form -->
+  <div class="form-card" style="max-width:100%">
+    <h2 style="font-size:1.4rem;margin-bottom:1.25rem">
+      📅 <span data-i18n="book.complete">Complete Booking</span>
+    </h2>
+
+    {% if tool['quantity'] == 0 %}
+    <div class="flash warning" style="margin-bottom:1.25rem" data-i18n="book.queue_warn">
+      ⚠️ This tool is currently out of stock. Your booking will be queued and fulfilled as soon as stock is replenished (FIFO order).
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('book_tool', tool_id=tool['id']) }}">
+      <div class="form-group">
+        <label for="phone" data-i18n="book.phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone"
+               data-i18n-ph="book.phone_ph" placeholder="+91 98765 43210" required />
+      </div>
+      <div class="form-group">
+        <label for="address" data-i18n="book.address">Delivery / Pickup Address</label>
+        <textarea id="address" name="address"
+                  data-i18n-ph="book.address_ph"
+                  placeholder="Enter your full address" required></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label for="book_date" data-i18n="book.date">Booking Date</label>
+          <input type="date" id="book_date" name="book_date" required />
+        </div>
+        <div class="form-group">
+          <label for="book_time" data-i18n="book.time">Preferred Time</label>
+          <input type="time" id="book_time" name="book_time" required />
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary"
+              style="width:100%;justify-content:center;padding:.75rem;font-size:.95rem"
+              data-i18n="{{ 'book.queue_btn' if tool['quantity'] == 0 else 'book.submit' }}">
+        {{ '⏳ Join Queue' if tool['quantity'] == 0 else '✅ Submit Booking Request' }}
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('book_date').min = new Date().toISOString().split('T')[0];
+
+  function applyToolTranslations() {
+    const lang = localStorage.getItem('farmrent_lang') || 'en';
+    document.querySelectorAll('[data-name-en]').forEach(el => {
+      el.textContent = lang === 'ta' ? el.dataset.nameTa : el.dataset.nameEn;
+    });
+    document.querySelectorAll('[data-desc-en]').forEach(el => {
+      const text = lang === 'ta' ? el.dataset.descTa : el.dataset.descEn;
+      if (text) el.textContent = text;
+    });
+  }
+  document.addEventListener('DOMContentLoaded', applyToolTranslations);
+  const _origToggle = window.toggleLanguage;
+  window.toggleLanguage = function() { _origToggle(); applyToolTranslations(); };
+</script>
+{% endblock %}

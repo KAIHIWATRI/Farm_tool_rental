@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="form-card">
+    <h2>🌾 <span data-i18n="login.title">Welcome Back</span></h2>
+    <p style="text-align:center;color:#8a7060;font-size:.88rem;margin-bottom:1.75rem"
+       data-i18n="login.subtitle">
+      Sign in to manage your farm equipment rentals
+    </p>
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label for="username" data-i18n="login.username">Username</label>
+        <input type="text" id="username" name="username"
+               data-i18n-ph="login.username_ph"
+               placeholder="Enter your username" required autofocus />
+      </div>
+      <div class="form-group">
+        <label for="password" data-i18n="login.password">Password</label>
+        <input type="password" id="password" name="password"
+               data-i18n-ph="login.password_ph"
+               placeholder="Enter your password" required />
+      </div>
+      <button type="submit" class="btn btn-primary"
+              style="width:100%;justify-content:center;padding:.75rem"
+              data-i18n="login.btn">Sign In →</button>
+    </form>
+
+    <div class="form-footer">
+      <span data-i18n="login.no_account">Don't have an account?</span>
+      <a href="{{ url_for('register') }}" data-i18n="login.register"> Register here</a>
+    </div>
+    <div class="divider"></div>
+    <p style="text-align:center;font-size:.78rem;color:#b0a090">
+      <span data-i18n="login.admin_hint">Default admin:</span>
+      <strong>admin</strong> / <strong>admin123</strong>
+    </p>
+  </div>
+</div>
+{% endblock %}

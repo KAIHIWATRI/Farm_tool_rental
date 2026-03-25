@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-header">
+    <h2><span data-i18n="hist.title">My Booking History</span></h2>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
+       data-i18n="hist.back">← Browse Tools</a>
+  </div>
+
+  {% if bookings %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th data-i18n="hist.col_tool">Tool</th>
+            <th data-i18n="hist.col_price">Price/day</th>
+            <th data-i18n="hist.col_booked">Booked For</th>
+            <th data-i18n="hist.col_phone">Phone</th>
+            <th data-i18n="hist.col_address">Address</th>
+            <th data-i18n="hist.col_status">Status</th>
+            <th data-i18n="hist.col_req">Requested On</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td style="color:#8a7060">{{ b['id'] }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:.6rem">
+                {% if b['tool_image'] %}
+                  <img src="{{ url_for('uploaded_file', filename=b['tool_image']) }}"
+                       style="width:36px;height:36px;object-fit:cover;border-radius:5px;border:1px solid #e0d4be" />
+                {% else %}
+                  <span style="font-size:1.5rem">🚜</span>
+                {% endif %}
+                <span class="tool-display-name" style="font-weight:600;color:var(--bark)"
+                      data-name-en="{{ b['tool_name'] }}"
+                      data-name-ta="{{ b['tool_name_ta'] or b['tool_name'] }}">
+                  {{ b['tool_name'] }}
+                </span>
+              </div>
+            </td>
+            <td>₹{{ "%.2f"|format(b['tool_price']) }}</td>
+            <td>
+              <div>{{ b['book_date'] }}</div>
+              <div style="font-size:.78rem;color:#8a7060">{{ b['book_time'] }}</div>
+            </td>
+            <td>{{ b['phone'] }}</td>
+            <td style="max-width:160px"><span style="font-size:.82rem">{{ b['address'] }}</span></td>
+            <td>
+              <span class="badge badge-{{ b['status'] }}"
+                    data-i18n="status.{{ b['status'] }}">{{ b['status'] }}</span>
+              {% if b['status'] == 'queued' %}
+                <div style="font-size:.72rem;color:#084298;margin-top:.2rem"
+                     data-i18n="hist.fifo">FIFO queue</div>
+              {% endif %}
+            </td>
+            <td style="font-size:.8rem;color:#8a7060">{{ b['created'][:10] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Legend -->
+    <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:.8rem;color:#8a7060">
+      <span><span class="badge badge-pending"  data-i18n="status.pending">pending</span>
+            <span data-i18n="hist.leg_pending"> Awaiting admin review</span></span>
+      <span><span class="badge badge-approved" data-i18n="status.approved">approved</span>
+            <span data-i18n="hist.leg_approved"> Confirmed &amp; quantity reserved</span></span>
+      <span><span class="badge badge-rejected" data-i18n="status.rejected">rejected</span>
+            <span data-i18n="hist.leg_rejected"> Not approved</span></span>
+      <span><span class="badge badge-queued"   data-i18n="status.queued">queued</span>
+            <span data-i18n="hist.leg_queued"> Waiting for stock (FIFO)</span></span>
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <p data-i18n="hist.empty">You haven't made any bookings yet.</p>
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="margin-top:1.25rem"
+         data-i18n="hist.browse">Browse Equipment</a>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+  function applyToolTranslations() {
+    const lang = localStorage.getItem('farmrent_lang') || 'en';
+    document.querySelectorAll('[data-name-en]').forEach(el => {
+      el.textContent = lang === 'ta' ? el.dataset.nameTa : el.dataset.nameEn;
+    });
+  }
+  document.addEventListener('DOMContentLoaded', applyToolTranslations);
+  const _origToggle = window.toggleLanguage;
+  window.toggleLanguage = function() { _origToggle(); applyToolTranslations(); };
+</script>
+{% endblock %}

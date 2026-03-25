@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}FarmRent{% endblock %} – Farm Equipment Rental</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="{{ url_for('static', filename='translations.js') }}"></script>
+</head>
+<body>
+
+  <!-- ── NAVBAR ── -->
+  {% if session.get('user_id') %}
+  <nav class="navbar">
+    <a href="{{ url_for('dashboard') }}" class="navbar-brand">
+      <span>🚜</span> <span data-i18n="nav.brand">FarmRent</span>
+    </a>
+    <div class="navbar-links">
+      <a href="{{ url_for('dashboard') }}"
+         data-i18n="{% if session.role == 'admin' %}nav.admin_panel{% else %}nav.browse_tools{% endif %}">
+        {% if session.role == 'admin' %}Admin Panel{% else %}Browse Tools{% endif %}
+      </a>
+      {% if session.role != 'admin' %}
+        <a href="{{ url_for('history') }}" data-i18n="nav.my_bookings">My Bookings</a>
+      {% endif %}
+      <a href="{{ url_for('logout') }}">
+        <span data-i18n="nav.logout">Logout</span> ({{ session.username }})
+      </a>
+      <button id="lang-toggle-btn" onclick="toggleLanguage()" class="lang-btn">தமிழ்</button>
+    </div>
+  </nav>
+  {% else %}
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">
+      <span>🚜</span> <span data-i18n="nav.brand">FarmRent</span>
+    </a>
+    <div class="navbar-links">
+      <button id="lang-toggle-btn" onclick="toggleLanguage()" class="lang-btn">தமிழ்</button>
+    </div>
+  </nav>
+  {% endif %}
+
+  <!-- ── FLASH MESSAGES ── -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container" style="padding-top:1rem; padding-bottom:0">
+        <ul class="flashes">
+          {% for category, message in messages %}
+            <li class="flash {{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ── MAIN CONTENT ── -->
+  {% block content %}{% endblock %}
+
+</body>
+</html>
